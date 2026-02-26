@@ -1,0 +1,8 @@
+.env
+.env.local
+.env.*
+.DS_Store
+bot_output.log
+conversations.db
+discord.log
+venv
