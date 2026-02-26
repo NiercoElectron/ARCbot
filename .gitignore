@@ -6,3 +6,4 @@ bot_output.log
 conversations.db
 discord.log
 venv
+.gitignore
