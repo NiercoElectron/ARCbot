@@ -22,6 +22,9 @@ intents.members = True
 
 bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 
+# Configura logging manualmente (bot.start() não aceita log_handler)
+discord.utils.setup_logging(handler=handler, level=logging.DEBUG)
+
 # Lista de cogs para carregar automaticamente
 EXTENSIONS = [
     'cogs.general',
@@ -37,7 +40,7 @@ async def main():
         for ext in EXTENSIONS:
             await bot.load_extension(ext)
             print(f'  ✔ {ext} carregado')
-        await bot.start(os.getenv('DISCORD-TOKEN'), log_handler=handler, log_level=logging.DEBUG)
+        await bot.start(os.getenv('DISCORD-TOKEN'))
 
 
 if __name__ == '__main__':
