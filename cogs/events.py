@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 from config import MEMBER_ROLE
+from utils.database import init_db, save_message
 from utils.helpers import get_role
 
 
@@ -13,6 +14,7 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        await init_db()
         print(f'Estamos prontos, {self.bot.user}')
 
     @commands.Cog.listener()
@@ -33,6 +35,16 @@ class Events(commands.Cog):
     async def on_message(self, message: discord.Message):
         if message.author == self.bot.user:
             return
+
+        # Salva a mensagem no banco para contexto da IA
+        if message.content:
+            await save_message(
+                channel_id=message.channel.id,
+                author_name=message.author.display_name,
+                content=message.content,
+                created_at=message.created_at.isoformat(),
+            )
+
         if message.content.startswith('<>'):
             await message.channel.send('Comando recebido!')
         # Não precisa chamar process_commands aqui — o bot já faz isso automaticamente

@@ -3,7 +3,7 @@
 .env.*
 .DS_Store
 bot_output.log
-conversations.db
+bot_data.db
 discord.log
 .venv
 __pycache__/
