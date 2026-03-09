@@ -6,5 +6,5 @@ bot_output.log
 bot_data.db
 discord.log
 .venv
-__pycache__/
+__pycache__
 *.pyc
