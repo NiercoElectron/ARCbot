@@ -96,7 +96,7 @@ class Moderation(commands.Cog):
 
     # ── castigar (timeout) ────────────────────────────────────────────────────
 
-    @commands.command()
+    @commands.command(name='mute')
     @is_owner_or_admin()
     async def castigar(self, ctx: commands.Context, member: discord.Member, duracao: str, *, reason: str = 'Sem motivo informado'):
         """Coloca o membro em timeout. Duração: 10s, 5m, 2h, 1d (máx 28d).
