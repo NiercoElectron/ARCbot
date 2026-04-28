@@ -32,7 +32,6 @@ Gerenciamento de roles diretamente pelo chat.
 | Comando | Descrição |
 |---------|-----------|
 | `\|ping` | Verifica se o bot está online |
-| `\|chamar @usuário <n>` | Menciona um usuário `n` vezes (1–50) |
 
 ### 📅 Agendador de Eventos
 Mensagens automáticas configuradas para notificar eventos recorrentes do jogo no canal `#arc-eventos`, incluindo:
