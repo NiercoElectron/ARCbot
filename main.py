@@ -32,6 +32,7 @@ EXTENSIONS = [
     'cogs.ai',
     'cogs.events',
     'cogs.scheduler',
+    'cogs.setup',
 ]
 
 

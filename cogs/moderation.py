@@ -1,8 +1,7 @@
 import discord
 from discord.ext import commands
 
-from config import MEMBER_ROLE
-from utils.helpers import get_role
+from utils.database import get_guild_config
 
 
 class Moderation(commands.Cog):
@@ -12,22 +11,32 @@ class Moderation(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def promote(self, ctx: commands.Context):
-        role = get_role(ctx.guild, MEMBER_ROLE)
+    async def promote(self, ctx: commands.Context, member: discord.Member = None):
+        target = member or ctx.author
+        config = await get_guild_config(ctx.guild.id)
+        if not config['promote_role_id']:
+            await ctx.send('Nenhum promote role configurado. Use `|setpromoterole @Cargo` primeiro.')
+            return
+        role = ctx.guild.get_role(config['promote_role_id'])
         if role:
-            await ctx.author.add_roles(role, reason='Atribuição manual de Sócio')
-            await ctx.send(f'Role "{MEMBER_ROLE}" atribuído com sucesso a {ctx.author.mention}!')
+            await target.add_roles(role, reason='Promoção manual')
+            await ctx.send(f'Role **{role.name}** atribuído com sucesso a {target.mention}!')
         else:
-            await ctx.send(f'Role "{MEMBER_ROLE}" não encontrado no servidor.')
+            await ctx.send('O promote role configurado não existe mais neste servidor.')
 
     @commands.command()
-    async def demote(self, ctx: commands.Context):
-        role = get_role(ctx.guild, MEMBER_ROLE)
+    async def demote(self, ctx: commands.Context, member: discord.Member = None):
+        target = member or ctx.author
+        config = await get_guild_config(ctx.guild.id)
+        if not config['promote_role_id']:
+            await ctx.send('Nenhum promote role configurado. Use `|setpromoterole @Cargo` primeiro.')
+            return
+        role = ctx.guild.get_role(config['promote_role_id'])
         if role:
-            await ctx.author.remove_roles(role, reason='Remoção manual de Sócio')
-            await ctx.send(f'Role "{MEMBER_ROLE}" removido com sucesso de {ctx.author.mention}!')
+            await target.remove_roles(role, reason='Remoção manual')
+            await ctx.send(f'Role **{role.name}** removido com sucesso de {target.mention}!')
         else:
-            await ctx.send(f'Role "{MEMBER_ROLE}" não encontrado no servidor.')
+            await ctx.send('O promote role configurado não existe mais neste servidor.')
 
 
 async def setup(bot: commands.Bot):

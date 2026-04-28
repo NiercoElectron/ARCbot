@@ -1,9 +1,7 @@
 import discord
 from discord.ext import commands
 
-from config import MEMBER_ROLE
-from utils.database import init_db, save_message
-from utils.helpers import get_role
+from utils.database import get_guild_config, init_db, save_message
 
 
 class Events(commands.Cog):
@@ -24,12 +22,14 @@ class Events(commands.Cog):
         except Exception:
             pass
 
-        role = get_role(member.guild, MEMBER_ROLE)
-        if role:
-            try:
-                await member.add_roles(role, reason='Atribuição automática de Sócio')
-            except Exception as e:
-                print(f"Não foi possível atribuir o role: {e}")
+        config = await get_guild_config(member.guild.id)
+        if config['autorole_id']:
+            role = member.guild.get_role(config['autorole_id'])
+            if role:
+                try:
+                    await member.add_roles(role, reason='Autorole automático')
+                except Exception as e:
+                    print(f"Não foi possível atribuir o autorole: {e}")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):

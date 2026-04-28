@@ -7,7 +7,7 @@ MAX_MESSAGES_PER_CHANNEL = 10
 
 
 async def init_db():
-    """Cria a tabela de mensagens se não existir."""
+    """Cria as tabelas necessárias se não existirem."""
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute('''
             CREATE TABLE IF NOT EXISTS messages (
@@ -22,7 +22,47 @@ async def init_db():
             CREATE INDEX IF NOT EXISTS idx_channel_created
             ON messages (channel_id, created_at)
         ''')
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS guild_config (
+                guild_id         INTEGER PRIMARY KEY,
+                autorole_id      INTEGER,
+                promote_role_id  INTEGER
+            )
+        ''')
         await db.commit()
+
+
+async def set_guild_config(guild_id: int, **kwargs):
+    """Atualiza campos de configuração do servidor. Kwargs aceitos: autorole_id, promote_role_id."""
+    allowed = {'autorole_id', 'promote_role_id'}
+    fields = {k: v for k, v in kwargs.items() if k in allowed}
+    if not fields:
+        return
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            'INSERT INTO guild_config (guild_id) VALUES (?) ON CONFLICT(guild_id) DO NOTHING',
+            (guild_id,)
+        )
+        for column, value in fields.items():
+            await db.execute(
+                f'UPDATE guild_config SET {column} = ? WHERE guild_id = ?',
+                (value, guild_id)
+            )
+        await db.commit()
+
+
+async def get_guild_config(guild_id: int) -> dict:
+    """Retorna a configuração do servidor ou um dict vazio."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute(
+            'SELECT autorole_id, promote_role_id FROM guild_config WHERE guild_id = ?',
+            (guild_id,)
+        )
+        row = await cursor.fetchone()
+    if row:
+        return dict(row)
+    return {'autorole_id': None, 'promote_role_id': None}
 
 
 async def save_message(channel_id: int, author_name: str, content: str, created_at: str):
