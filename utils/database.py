@@ -29,6 +29,18 @@ async def init_db():
                 promote_role_id  INTEGER
             )
         ''')
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS guild_schedules (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id   INTEGER NOT NULL,
+                channel_id INTEGER NOT NULL,
+                time       TEXT    NOT NULL,
+                message    TEXT    NOT NULL,
+                daily      INTEGER NOT NULL DEFAULT 1,
+                date       TEXT,
+                fired      INTEGER NOT NULL DEFAULT 0
+            )
+        ''')
         await db.commit()
 
 
@@ -101,3 +113,68 @@ async def get_recent_messages(channel_id: int, limit: int = MAX_MESSAGES_PER_CHA
         {'author': row['author_name'], 'content': row['content'], 'created_at': row['created_at']}
         for row in reversed(rows)
     ]
+
+
+# ── guild_schedules ────────────────────────────────────────────────────────────
+
+async def add_guild_schedule(
+    guild_id: int,
+    channel_id: int,
+    time: str,
+    message: str,
+    daily: bool,
+    date: str | None = None,
+) -> int:
+    """Insere um agendamento e retorna o ID gerado."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute(
+            '''INSERT INTO guild_schedules (guild_id, channel_id, time, message, daily, date, fired)
+               VALUES (?, ?, ?, ?, ?, ?, 0)''',
+            (guild_id, channel_id, time, message, int(daily), date),
+        )
+        await db.commit()
+        return cursor.lastrowid
+
+
+async def get_guild_schedules(guild_id: int) -> list[dict]:
+    """Retorna todos os agendamentos de um servidor."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute(
+            'SELECT * FROM guild_schedules WHERE guild_id = ? ORDER BY time',
+            (guild_id,),
+        )
+        rows = await cursor.fetchall()
+    return [dict(row) for row in rows]
+
+
+async def get_all_pending_schedules() -> list[dict]:
+    """Retorna agendamentos diários e one-time ainda não disparados."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute(
+            'SELECT * FROM guild_schedules WHERE daily = 1 OR fired = 0',
+        )
+        rows = await cursor.fetchall()
+    return [dict(row) for row in rows]
+
+
+async def delete_guild_schedule(schedule_id: int, guild_id: int) -> bool:
+    """Remove um agendamento do servidor. Retorna True se existia."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute(
+            'DELETE FROM guild_schedules WHERE id = ? AND guild_id = ?',
+            (schedule_id, guild_id),
+        )
+        await db.commit()
+        return cursor.rowcount > 0
+
+
+async def mark_schedule_fired(schedule_id: int):
+    """Marca um agendamento one-time como disparado."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            'UPDATE guild_schedules SET fired = 1 WHERE id = ?',
+            (schedule_id,),
+        )
+        await db.commit()

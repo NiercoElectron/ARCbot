@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands, tasks
 
 from config import SCHEDULES, ARC_ROLE
+from utils.database import get_all_pending_schedules, mark_schedule_fired
 from utils.helpers import find_channel, get_role
 
 
@@ -48,6 +49,33 @@ class Scheduler(commands.Cog):
                 await channel.send(message)
             except Exception as e:
                 print(f"Erro ao enviar mensagem agendada: {e}")
+
+        # ── Agendamentos configurados via |setqueue ────────────────────────
+        today = now.strftime('%Y-%m-%d')
+        try:
+            db_schedules = await get_all_pending_schedules()
+        except Exception as e:
+            print(f"Erro ao carregar agendamentos do banco: {e}")
+            db_schedules = []
+
+        for s in db_schedules:
+            if s['time'] != current_hm:
+                continue
+            if not s['daily'] and s['date'] != today:
+                continue
+
+            channel = self.bot.get_channel(s['channel_id'])
+            if not channel:
+                continue
+
+            try:
+                await channel.send(s['message'])
+            except Exception as e:
+                print(f"Erro ao enviar agendamento #{s['id']}: {e}")
+                continue
+
+            if not s['daily']:
+                await mark_schedule_fired(s['id'])
 
         self.last_min = now_min
 

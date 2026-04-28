@@ -43,19 +43,57 @@ class Setup(commands.Cog):
     @commands.command(name='showconfig')
     @is_owner_or_admin()
     async def show_config(self, ctx: commands.Context):
-        """Mostra a configuração atual do servidor."""
+        """Mostra a configuração modular atual do bot neste servidor."""
+        from config import PREFIX, SCHEDULES
+
         config = await get_guild_config(ctx.guild.id)
 
         autorole = ctx.guild.get_role(config['autorole_id']) if config['autorole_id'] else None
         promote_role = ctx.guild.get_role(config['promote_role_id']) if config['promote_role_id'] else None
 
-        embed = discord.Embed(title='Configuração do servidor', color=discord.Color.blurple())
-        embed.add_field(name='Autorole', value=autorole.mention if autorole else '*(não definido)*', inline=False)
-        embed.add_field(name='Promote role', value=promote_role.mention if promote_role else '*(não definido)*', inline=False)
+        embed = discord.Embed(
+            title=f'⚙️ Configuração do bot — {ctx.guild.name}',
+            color=discord.Color.blurple(),
+        )
+
+        # Geral
+        embed.add_field(name='Prefixo', value=f'`{PREFIX}`', inline=True)
+        loaded_cogs = ', '.join(f'`{name}`' for name in self.bot.cogs) or '*(nenhum)*'
+        embed.add_field(name='Módulos carregados', value=loaded_cogs, inline=False)
+
+        # Roles configurados via banco
+        embed.add_field(
+            name='Autorole (entrada)',
+            value=autorole.mention if autorole else '*(não definido)*',
+            inline=True,
+        )
+        embed.add_field(
+            name='Promote role',
+            value=promote_role.mention if promote_role else '*(não definido)*',
+            inline=True,
+        )
+
+        # Agendamentos ativos para este servidor (canais que existem no guild)
+        guild_channel_names = {ch.name for ch in ctx.guild.text_channels}
+        guild_channel_ids = {ch.id for ch in ctx.guild.text_channels}
+        active = [
+            s for s in SCHEDULES
+            if s.get('channel') in guild_channel_names
+            or s.get('channel_id') in guild_channel_ids
+        ]
+        if active:
+            schedule_lines = '\n'.join(
+                f"`{s['time']}` → #{s.get('channel') or s.get('channel_id')}" for s in active
+            )
+        else:
+            schedule_lines = '*(nenhum para este servidor)*'
+        embed.add_field(name=f'Agendamentos ({len(active)})', value=schedule_lines, inline=False)
+
         await ctx.send(embed=embed)
 
     @set_autorole.error
     @set_promote_role.error
+    @show_config.error
     async def setup_error(self, ctx: commands.Context, error: commands.CommandError):
         if isinstance(error, commands.CheckFailure):
             await ctx.send('Apenas o dono do servidor ou administradores podem usar esse comando.')
