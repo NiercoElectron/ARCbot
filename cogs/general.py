@@ -14,13 +14,6 @@ class General(commands.Cog):
     async def ping(self, ctx: commands.Context):
         await ctx.send('Pong!')
 
-    @chamar.error
-    async def chamar_error(self, ctx: commands.Context, error):
-        if isinstance(error, commands.MemberNotFound):
-            await ctx.send("Esse usuário não está no servidor.")
-        elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("Quantidade de argumentos insuficiente. Use: |chamar @usuário quantidade.")
-
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(General(bot))
