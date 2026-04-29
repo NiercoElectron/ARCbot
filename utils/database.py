@@ -4,6 +4,7 @@ import aiosqlite
 
 DB_PATH = 'bot_data.db'
 MAX_MESSAGES_PER_CHANNEL = 10
+MESSAGE_TTL_HOURS = 24  # mensagens mais antigas que isso são removidas automaticamente
 
 
 async def init_db():
@@ -40,6 +41,20 @@ async def init_db():
                 date       TEXT,
                 fired      INTEGER NOT NULL DEFAULT 0
             )
+        ''')
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS warnings (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id   INTEGER NOT NULL,
+                user_id    INTEGER NOT NULL,
+                mod_id     INTEGER NOT NULL,
+                reason     TEXT    NOT NULL,
+                created_at TEXT    NOT NULL
+            )
+        ''')
+        await db.execute('''
+            CREATE INDEX IF NOT EXISTS idx_warnings_guild_user
+            ON warnings (guild_id, user_id)
         ''')
         await db.commit()
 
@@ -78,14 +93,19 @@ async def get_guild_config(guild_id: int) -> dict:
 
 
 async def save_message(channel_id: int, author_name: str, content: str, created_at: str):
-    """Salva uma mensagem e mantém no máximo MAX_MESSAGES_PER_CHANNEL por canal."""
+    """Salva uma mensagem e mantém no máximo MAX_MESSAGES_PER_CHANNEL por canal, com TTL."""
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute(
             'INSERT INTO messages (channel_id, author_name, content, created_at) '
             'VALUES (?, ?, ?, ?)',
             (channel_id, author_name, content, created_at),
         )
-        # Remove mensagens antigas, mantendo apenas as últimas N
+        # Remove mensagens expiradas (mais antigas que MESSAGE_TTL_HOURS)
+        await db.execute(
+            "DELETE FROM messages WHERE channel_id = ? AND created_at < datetime('now', ? || ' hours')",
+            (channel_id, f'-{MESSAGE_TTL_HOURS}'),
+        )
+        # Remove mensagens antigas além do limite por canal
         await db.execute('''
             DELETE FROM messages
             WHERE channel_id = ? AND id NOT IN (
@@ -113,6 +133,54 @@ async def get_recent_messages(channel_id: int, limit: int = MAX_MESSAGES_PER_CHA
         {'author': row['author_name'], 'content': row['content'], 'created_at': row['created_at']}
         for row in reversed(rows)
     ]
+
+
+# ── warnings ──────────────────────────────────────────────────────────────────
+
+async def add_warning(guild_id: int, user_id: int, mod_id: int, reason: str, created_at: str) -> int:
+    """Adiciona um aviso e retorna o total de avisos do usuário no servidor."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            'INSERT INTO warnings (guild_id, user_id, mod_id, reason, created_at) VALUES (?, ?, ?, ?, ?)',
+            (guild_id, user_id, mod_id, reason, created_at),
+        )
+        await db.commit()
+        cursor = await db.execute(
+            'SELECT COUNT(*) FROM warnings WHERE guild_id = ? AND user_id = ?',
+            (guild_id, user_id),
+        )
+        row = await cursor.fetchone()
+    return row[0]
+
+
+async def get_warnings(guild_id: int, user_id: int) -> list[dict]:
+    """Retorna todos os avisos de um usuário no servidor."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute(
+            'SELECT id, mod_id, reason, created_at FROM warnings '
+            'WHERE guild_id = ? AND user_id = ? ORDER BY created_at ASC',
+            (guild_id, user_id),
+        )
+        rows = await cursor.fetchall()
+    return [dict(r) for r in rows]
+
+
+async def clear_warnings(guild_id: int, user_id: int) -> int:
+    """Remove todos os avisos de um usuário. Retorna quantos foram removidos."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute(
+            'SELECT COUNT(*) FROM warnings WHERE guild_id = ? AND user_id = ?',
+            (guild_id, user_id),
+        )
+        row = await cursor.fetchone()
+        count = row[0]
+        await db.execute(
+            'DELETE FROM warnings WHERE guild_id = ? AND user_id = ?',
+            (guild_id, user_id),
+        )
+        await db.commit()
+    return count
 
 
 # ── guild_schedules ────────────────────────────────────────────────────────────

@@ -2,16 +2,7 @@ import discord
 from discord.ext import commands
 
 from utils.database import get_guild_config, set_guild_config
-
-
-def is_owner_or_admin():
-    """Check: apenas o dono do servidor ou administradores podem usar esses comandos."""
-    async def predicate(ctx: commands.Context) -> bool:
-        return (
-            ctx.author == ctx.guild.owner
-            or ctx.author.guild_permissions.administrator
-        )
-    return commands.check(predicate)
+from utils.helpers import is_owner_or_admin
 
 
 class Setup(commands.Cog):
@@ -91,9 +82,87 @@ class Setup(commands.Cog):
 
         await ctx.send(embed=embed)
 
+    # ── status ────────────────────────────────────────────────────────────────
+
+    @commands.command(name='status')
+    @is_owner_or_admin()
+    async def status(self, ctx: commands.Context):
+        """Painel de status: latência, permissões e saúde geral do bot."""
+        from cogs.events import REQUIRED_PERMISSIONS
+
+        bot_member = ctx.guild.me
+        latency = round(self.bot.latency * 1000)
+
+        # Permissões
+        ok = []
+        missing = []
+        for perm in REQUIRED_PERMISSIONS:
+            if getattr(bot_member.guild_permissions, perm, False):
+                ok.append(perm)
+            else:
+                missing.append(perm)
+
+        status_color = discord.Color.green() if not missing else discord.Color.red()
+        embed = discord.Embed(
+            title=f'📊 Status — {ctx.guild.name}',
+            color=status_color,
+        )
+        embed.add_field(name='Latência', value=f'`{latency}ms`', inline=True)
+        embed.add_field(name='Módulos carregados', value=str(len(self.bot.extensions)), inline=True)
+        embed.add_field(
+            name='✅ Permissões OK',
+            value='\n'.join(f'`{p}`' for p in ok) or '*(nenhuma)*',
+            inline=False,
+        )
+        if missing:
+            embed.add_field(
+                name='❌ Permissões faltando',
+                value='\n'.join(f'`{p}`' for p in missing),
+                inline=False,
+            )
+        await ctx.send(embed=embed)
+
+    # ── reload ─────────────────────────────────────────────────────────
+
+    @commands.command(name='reload')
+    @is_owner_or_admin()
+    async def reload_cog(self, ctx: commands.Context, cog: str):
+        """Recarrega um módulo (cog) sem reiniciar o bot.
+
+        Uso: |reload moderation
+        """
+        ext = f'cogs.{cog}' if not cog.startswith('cogs.') else cog
+        try:
+            await self.bot.reload_extension(ext)
+            await ctx.send(f'✅ `{ext}` recarregado com sucesso.')
+        except commands.ExtensionNotLoaded:
+            await ctx.send(f'❌ `{ext}` não está carregado.')
+        except commands.ExtensionNotFound:
+            await ctx.send(f'❌ Módulo `{ext}` não encontrado.')
+        except Exception as e:
+            await ctx.send(f'❌ Erro ao recarregar `{ext}`: {e}')
+
+    @commands.command(name='reloadall')
+    @is_owner_or_admin()
+    async def reload_all(self, ctx: commands.Context):
+        """Recarrega todos os módulos carregados.
+
+        Uso: |reloadall
+        """
+        results = []
+        for ext in list(self.bot.extensions):
+            try:
+                await self.bot.reload_extension(ext)
+                results.append(f'✅ `{ext}`')
+            except Exception as e:
+                results.append(f'❌ `{ext}`: {e}')
+        await ctx.send('**Reload de todos os módulos:**\n' + '\n'.join(results))
+
     @set_autorole.error
     @set_promote_role.error
     @show_config.error
+    @reload_cog.error
+    @reload_all.error
     async def setup_error(self, ctx: commands.Context, error: commands.CommandError):
         if isinstance(error, commands.CheckFailure):
             await ctx.send('Apenas o dono do servidor ou administradores podem usar esse comando.')

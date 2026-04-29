@@ -9,15 +9,7 @@ from utils.database import (
     delete_guild_schedule,
     get_guild_schedules,
 )
-
-
-def is_owner_or_admin():
-    async def predicate(ctx: commands.Context) -> bool:
-        return (
-            ctx.author == ctx.guild.owner
-            or ctx.author.guild_permissions.administrator
-        )
-    return commands.check(predicate)
+from utils.helpers import is_owner_or_admin
 
 
 class Queue(commands.Cog):

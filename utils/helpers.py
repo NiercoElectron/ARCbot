@@ -1,6 +1,17 @@
 """Funções auxiliares reutilizáveis."""
 
 import discord
+from discord.ext import commands
+
+
+def is_owner_or_admin():
+    """Check: apenas o dono do servidor ou administradores podem usar o comando."""
+    async def predicate(ctx: commands.Context) -> bool:
+        return (
+            ctx.author == ctx.guild.owner
+            or ctx.author.guild_permissions.administrator
+        )
+    return commands.check(predicate)
 
 
 def find_channel(bot, channel_name: str | None = None, channel_id: int | None = None):

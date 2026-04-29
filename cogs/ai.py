@@ -7,6 +7,7 @@ from config import SYSTEM_PROMPT
 from utils.database import get_recent_messages
 
 DISCORD_MAX_LENGTH = 2000
+RATE_LIMIT_SECONDS = 30  # cooldown por usuário
 
 
 class AI(commands.Cog):
@@ -49,6 +50,7 @@ class AI(commands.Cog):
         return chunks
 
     @commands.command()
+    @commands.cooldown(rate=1, per=RATE_LIMIT_SECONDS, type=commands.BucketType.user)
     async def sec(self, ctx: commands.Context, *, question: str):
         recent = await get_recent_messages(ctx.channel.id)
         context_block = self._build_context(recent)
@@ -79,6 +81,16 @@ class AI(commands.Cog):
 
         except Exception as e:
             await ctx.send(f'Erro ao consultar a IA: {e}')
+
+    @sec.error
+    async def sec_error(self, ctx: commands.Context, error: commands.CommandError):
+        if isinstance(error, commands.CommandOnCooldown):
+            await ctx.send(
+                f'Calma lá! Aguarde **{error.retry_after:.0f}s** antes de usar `|sec` novamente.',
+                delete_after=10,
+            )
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send('Você precisa fazer uma pergunta. Uso: `|sec sua pergunta aqui`')
 
 
 async def setup(bot: commands.Bot):
