@@ -4,9 +4,7 @@ import datetime
 import discord
 from discord.ext import commands, tasks
 
-from config import SCHEDULES, ARC_ROLE
 from utils.database import get_all_pending_schedules, mark_schedule_fired
-from utils.helpers import find_channel, get_role
 
 
 class Scheduler(commands.Cog):
@@ -29,28 +27,6 @@ class Scheduler(commands.Cog):
             return
 
         current_hm = now.strftime("%H:%M")
-        for schedule in SCHEDULES:
-            if schedule.get("time") != current_hm:
-                continue
-
-            channel = find_channel(
-                self.bot,
-                channel_name=schedule.get("channel"),
-                channel_id=schedule.get("channel_id"),
-            )
-            if not channel:
-                continue
-
-            try:
-                arc_role = get_role(channel.guild, ARC_ROLE)
-                message = schedule.get("message")
-                if arc_role:
-                    message = f"{arc_role.mention} {message}"
-                await channel.send(message)
-            except Exception as e:
-                print(f"Erro ao enviar mensagem agendada: {e}")
-
-        # ── Agendamentos configurados via |setqueue ────────────────────────
         today = now.strftime('%Y-%m-%d')
         try:
             db_schedules = await get_all_pending_schedules()

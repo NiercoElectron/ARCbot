@@ -35,7 +35,8 @@ class Setup(commands.Cog):
     @is_owner_or_admin()
     async def show_config(self, ctx: commands.Context):
         """Mostra a configuração modular atual do bot neste servidor."""
-        from config import PREFIX, SCHEDULES
+        from config import PREFIX
+        from utils.database import get_all_pending_schedules
 
         config = await get_guild_config(ctx.guild.id)
 
@@ -64,17 +65,13 @@ class Setup(commands.Cog):
             inline=True,
         )
 
-        # Agendamentos ativos para este servidor (canais que existem no guild)
-        guild_channel_names = {ch.name for ch in ctx.guild.text_channels}
+        # Agendamentos configurados via |setqueue
+        all_schedules = await get_all_pending_schedules()
         guild_channel_ids = {ch.id for ch in ctx.guild.text_channels}
-        active = [
-            s for s in SCHEDULES
-            if s.get('channel') in guild_channel_names
-            or s.get('channel_id') in guild_channel_ids
-        ]
+        active = [s for s in all_schedules if s['channel_id'] in guild_channel_ids]
         if active:
             schedule_lines = '\n'.join(
-                f"`{s['time']}` → #{s.get('channel') or s.get('channel_id')}" for s in active
+                f"`{s['time']}` → <#{s['channel_id']}> {'(diário)' if s['daily'] else s['date']}" for s in active
             )
         else:
             schedule_lines = '*(nenhum para este servidor)*'
