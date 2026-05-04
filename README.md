@@ -1,47 +1,70 @@
-# 🤖 ARC Bot — Alpha Fechado
+# 🤖 ARC Bot
 
-> Bot Discord para o servidor **ARC** — gerenciamento, IA e notificações de eventos, tudo em um só lugar.
-
----
-
-## ⚠️ Estado atual: Alpha Fechado
-
-Esta é uma versão **Alpha Fechada**. O acesso é restrito e a funcionalidade pode mudar sem aviso prévio. Bugs são esperados — e bem-vindos como feedback.
+> Bot Discord multi-servidor com IA, moderação completa e agendamento de mensagens.
 
 ---
 
 ## ✨ Funcionalidades
 
 ### 🧠 Inteligência Artificial
-Integração com a OpenAI para um assistente virtual com personalidade própria. Ele lembra do contexto recente do canal para dar respostas mais relevantes.
+
+Assistente com personalidade própria alimentado pelo modelo **GPT-5-mini**. Usa o histórico recente do canal como contexto para respostas mais relevantes. Cooldown de 30 s por usuário.
 
 | Comando | Descrição |
 |---------|-----------|
 | `\|sec <pergunta>` | Consulta a IA com contexto das últimas mensagens do canal |
 
-### 🛡️ Moderação
-Gerenciamento de roles diretamente pelo chat.
-
-| Comando | Descrição |
-|---------|-----------|
-| `\|promote` | Atribui o role **Membro** ao autor |
-| `\|demote` | Remove o role **Membro** do autor |
-
 ### 🎉 Comandos Gerais
 
 | Comando | Descrição |
 |---------|-----------|
-| `\|ping` | Verifica se o bot está online |
+| `\|ping` | Latência do bot |
+| `\|serverinfo` | Informações do servidor em embed |
+| `\|userinfo [@membro]` | Perfil de um membro (padrão: você mesmo) |
+| `\|avatar [@membro]` | Avatar em tamanho grande |
+| `\|help` | Lista todos os comandos disponíveis para você |
 
-### 📅 Agendador de Eventos
-Mensagens automáticas configuradas para notificar eventos recorrentes do jogo no canal `#arc-eventos`, incluindo:
+### 🛡️ Moderação *(apenas dono/admin)*
 
-- **Cidade dos Pássaros** — avisos de início e contagem regressiva
-- **Incursão Noturna** — múltiplas localidades (Stella Montis, Cidade Soterrada, Espaçoporto, Campos de Batalha da Represa)
-- **Bom dia** e resumo diário no canal `#geral`
+| Comando | Descrição |
+|---------|-----------|
+| `\|promote [@membro]` | Atribui o promote role ao membro |
+| `\|demote [@membro]` | Remove o promote role do membro |
+| `\|ban @membro [motivo]` | Bane o membro do servidor |
+| `\|kick @membro [motivo]` | Expulsa o membro do servidor |
+| `\|mute @membro <duração> [motivo]` | Timeout — duração: `10s`, `5m`, `2h`, `1d` (máx 28d) |
+| `\|liberar @membro` | Remove o timeout antes do prazo |
+| `\|warn @membro [motivo]` | Registra um aviso e notifica via DM |
+| `\|warnings @membro` | Lista os avisos do membro |
+| `\|clearwarns @membro` | Apaga todos os avisos do membro |
 
-### 👋 Boas-vindas Automáticas
-Ao entrar no servidor, o membro recebe uma DM de boas-vindas e o role **Membro** é atribuído automaticamente.
+### ⚙️ Configuração *(apenas dono/admin)*
+
+| Comando | Descrição |
+|---------|-----------|
+| `\|setautorole @Cargo` | Define o cargo atribuído automaticamente a novos membros |
+| `\|setpromoterole @Cargo` | Define o cargo usado por `\|promote` / `\|demote` |
+| `\|showconfig` | Exibe a configuração atual do bot neste servidor |
+| `\|status` | Painel de latência e permissões |
+| `\|reload <módulo>` | Recarrega um módulo sem reiniciar o bot |
+| `\|reloadall` | Recarrega todos os módulos |
+
+### 📅 Agendador de Mensagens *(apenas dono/admin)*
+
+Crie mensagens automáticas por servidor, diárias ou em uma data específica.
+
+| Comando | Descrição |
+|---------|-----------|
+| `\|setqueue #canal HH:MM sim` | Cria mensagem diária no canal |
+| `\|setqueue #canal HH:MM não dd/mm/yyyy` | Cria mensagem única em uma data |
+| `\|listqueue` | Lista todos os agendamentos do servidor |
+| `\|delqueue <id>` | Remove um agendamento pelo ID |
+
+### 👋 Automações de Eventos
+
+- **Boas-vindas** — DM automática ao novo membro ao entrar no servidor
+- **Autorole** — cargo atribuído automaticamente (configurável via `\|setautorole`)
+- **Verificação de permissões** — ao entrar em um servidor, o bot notifica o dono caso faltem permissões necessárias
 
 ---
 
@@ -50,17 +73,19 @@ Ao entrar no servidor, o membro recebe uma DM de boas-vindas e o role **Membro**
 ```
 .
 ├── main.py            # Ponto de entrada do bot
-├── config.py          # Prefixo, roles, system prompt e agendamentos
-├── Requirements.txt   # Dependências
+├── config.py          # Prefixo e system prompt da IA
+├── Requirements.txt   # Dependências Python
 ├── cogs/
-│   ├── ai.py          # Comando |sec (OpenAI)
-│   ├── events.py      # Listeners: on_ready, on_member_join, on_message
-│   ├── general.py     # Comandos gerais (ping, chamar)
-│   ├── moderation.py  # Comandos promote e demote
-│   └── scheduler.py   # Agendador de mensagens
+│   ├── ai.py          # Comando |sec (OpenAI GPT-5-mini)
+│   ├── events.py      # Listeners: on_ready, on_guild_join, on_member_join, on_message
+│   ├── general.py     # Comandos gerais (ping, serverinfo, userinfo, avatar, help)
+│   ├── moderation.py  # Moderação (ban, kick, mute, warn…)
+│   ├── queue.py       # Gerenciamento de agendamentos (setqueue, listqueue, delqueue)
+│   ├── scheduler.py   # Loop que dispara as mensagens agendadas
+│   └── setup.py       # Configuração do servidor (setautorole, setpromoterole, status…)
 └── utils/
-    ├── database.py    # SQLite — histórico de mensagens por canal
-    └── helpers.py     # Funções utilitárias
+    ├── database.py    # SQLite — histórico de mensagens, config por guild, agendamentos e avisos
+    └── helpers.py     # Funções utilitárias (is_owner_or_admin, find_channel, get_role)
 ```
 
 ---
