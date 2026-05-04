@@ -27,9 +27,15 @@ async def init_db():
             CREATE TABLE IF NOT EXISTS guild_config (
                 guild_id         INTEGER PRIMARY KEY,
                 autorole_id      INTEGER,
-                promote_role_id  INTEGER
+                promote_role_id  INTEGER,
+                welcome_message  TEXT
             )
         ''')
+        # migração: adiciona coluna se banco já existia sem ela
+        try:
+            await db.execute('ALTER TABLE guild_config ADD COLUMN welcome_message TEXT')
+        except Exception:
+            pass
         await db.execute('''
             CREATE TABLE IF NOT EXISTS guild_schedules (
                 id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,8 +66,8 @@ async def init_db():
 
 
 async def set_guild_config(guild_id: int, **kwargs):
-    """Atualiza campos de configuração do servidor. Kwargs aceitos: autorole_id, promote_role_id."""
-    allowed = {'autorole_id', 'promote_role_id'}
+    """Atualiza campos de configuração do servidor. Kwargs aceitos: autorole_id, promote_role_id, welcome_message."""
+    allowed = {'autorole_id', 'promote_role_id', 'welcome_message'}
     fields = {k: v for k, v in kwargs.items() if k in allowed}
     if not fields:
         return
@@ -83,13 +89,13 @@ async def get_guild_config(guild_id: int) -> dict:
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         cursor = await db.execute(
-            'SELECT autorole_id, promote_role_id FROM guild_config WHERE guild_id = ?',
+            'SELECT autorole_id, promote_role_id, welcome_message FROM guild_config WHERE guild_id = ?',
             (guild_id,)
         )
         row = await cursor.fetchone()
     if row:
         return dict(row)
-    return {'autorole_id': None, 'promote_role_id': None}
+    return {'autorole_id': None, 'promote_role_id': None, 'welcome_message': None}
 
 
 async def save_message(channel_id: int, author_name: str, content: str, created_at: str):

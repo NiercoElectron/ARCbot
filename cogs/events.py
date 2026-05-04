@@ -57,12 +57,16 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
-        try:
-            await member.send(f'Bem-vindo ao nosso café virtual, {member.name}!')
-        except Exception:
-            pass
-
         config = await get_guild_config(member.guild.id)
+
+        welcome_msg = config.get('welcome_message')
+        if welcome_msg:
+            text = welcome_msg.replace('{member}', member.display_name).replace('{server}', member.guild.name)
+            try:
+                await member.send(text)
+            except Exception:
+                pass
+
         if config['autorole_id']:
             role = member.guild.get_role(config['autorole_id'])
             if role:

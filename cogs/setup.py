@@ -21,6 +21,35 @@ class Setup(commands.Cog):
         await set_guild_config(ctx.guild.id, autorole_id=role.id)
         await ctx.send(f'Autorole definido para **{role.name}**. Novos membros receberão esse cargo ao entrar.')
 
+    @commands.command(name='setwelcome')
+    @is_owner_or_admin()
+    async def set_welcome(self, ctx: commands.Context, *, message: str = None):
+        """Define a mensagem enviada por DM ao novo membro quando ele entra no servidor.
+
+        Uso: |setwelcome Bem-vindo, {member}! Você entrou em {server}.
+        Use {member} para o nome do membro e {server} para o nome do servidor.
+        Use |setwelcome off para desativar.
+        """
+        if message and message.lower() == 'off':
+            await set_guild_config(ctx.guild.id, welcome_message=None)
+            await ctx.send('Mensagem de boas-vindas **desativada**. Novos membros não receberão DM ao entrar.')
+            return
+
+        if not message:
+            await ctx.send(
+                'Informe a mensagem. Exemplo:\n'
+                f'`{ctx.prefix}setwelcome Bem-vindo, {{member}}! Você entrou em {{server}}.`\n'
+                'Variáveis disponíveis: `{member}` (nome do membro), `{server}` (nome do servidor).\n'
+                f'Para desativar: `{ctx.prefix}setwelcome off`'
+            )
+            return
+
+        await set_guild_config(ctx.guild.id, welcome_message=message)
+        preview = message.replace('{member}', ctx.author.display_name).replace('{server}', ctx.guild.name)
+        await ctx.send(
+            f'Mensagem de boas-vindas definida! Prévia:\n> {preview}'
+        )
+
     @commands.command(name='setpromoterole')
     @is_owner_or_admin()
     async def set_promote_role(self, ctx: commands.Context, role: discord.Role):
@@ -63,6 +92,14 @@ class Setup(commands.Cog):
             name='Promote role',
             value=promote_role.mention if promote_role else '*(não definido)*',
             inline=True,
+        )
+
+        # Mensagem de boas-vindas
+        welcome_msg = config.get('welcome_message')
+        embed.add_field(
+            name='Mensagem de boas-vindas (DM)',
+            value=f'`{welcome_msg}`' if welcome_msg else '*(não definida)*',
+            inline=False,
         )
 
         # Agendamentos configurados via |setqueue
