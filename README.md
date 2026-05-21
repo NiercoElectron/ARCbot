@@ -141,7 +141,7 @@ Todas as configurações ficam em `config.py`:
 
 | Variável | Descrição |
 |----------|-----------|
-| `PREFIX` | Prefixo dos comandos (padrão: `|`) |
+| `PREFIX` | Prefixo dos comandos (padrão: `&#124`) |
 | `SYSTEM_PROMPT` | Personalidade e instruções da IA |
 
 ---
