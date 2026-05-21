@@ -12,42 +12,46 @@ Assistente com personalidade própria alimentado pelo modelo **GPT-5-mini**. Usa
 
 | Comando | Descrição |
 |---------|-----------|
-| `\|sec <pergunta>` | Consulta a IA com contexto das últimas mensagens do canal |
+| `|sec <pergunta>` | Consulta a IA com contexto das últimas mensagens do canal |
 
 ### 🎉 Comandos Gerais
 
 | Comando | Descrição |
 |---------|-----------|
-| `\|ping` | Latência do bot |
-| `\|serverinfo` | Informações do servidor em embed |
-| `\|userinfo [@membro]` | Perfil de um membro (padrão: você mesmo) |
-| `\|avatar [@membro]` | Avatar em tamanho grande |
-| `\|help` | Lista todos os comandos disponíveis para você |
+| `|ping` | Verifica a latência do bot |
+| `|serverinfo` | Mostra informações do servidor em embed |
+| `|userinfo [@membro]` | Exibe dados de um membro (padrão: autor do comando) |
+| `|avatar [@membro]` | Mostra o avatar em tamanho grande |
+| `|help` | Lista todos os comandos disponíveis para você |
 
 ### 🛡️ Moderação *(apenas dono/admin)*
 
 | Comando | Descrição |
 |---------|-----------|
-| `\|promote [@membro]` | Atribui o promote role ao membro |
-| `\|demote [@membro]` | Remove o promote role do membro |
-| `\|ban @membro [motivo]` | Bane o membro do servidor |
-| `\|kick @membro [motivo]` | Expulsa o membro do servidor |
-| `\|mute @membro <duração> [motivo]` | Timeout — duração: `10s`, `5m`, `2h`, `1d` (máx 28d) |
-| `\|liberar @membro` | Remove o timeout antes do prazo |
-| `\|warn @membro [motivo]` | Registra um aviso e notifica via DM |
-| `\|warnings @membro` | Lista os avisos do membro |
-| `\|clearwarns @membro` | Apaga todos os avisos do membro |
+| `|promote [@membro]` | Atribui o promote role ao membro |
+| `|demote [@membro]` | Remove o promote role do membro |
+| `|ban @membro [motivo]` | Bane o membro do servidor |
+| `|kick @membro [motivo]` | Expulsa o membro do servidor |
+| `|mute @membro <duração> [motivo]` | Timeout por `10s`, `5m`, `2h`, `1d` (máx 28d) |
+| `|liberar @membro` | Remove o timeout antes do prazo |
+| `|warn @membro [motivo]` | Registra um aviso para o membro |
+| `|warnings @membro` | Lista os avisos do membro |
+| `|clearwarns @membro` | Remove todos os avisos do membro |
+| `|purge <quantidade> [@membro]` | Deleta mensagens no canal, opcionalmente filtrando por membro |
+| `|unban <user_id> [motivo]` | Remove o ban de um usuário pelo ID |
+| `|softban @membro [motivo]` | Bane e desbane o membro para apagar mensagens recentes |
 
 ### ⚙️ Configuração *(apenas dono/admin)*
 
 | Comando | Descrição |
 |---------|-----------|
-| `\|setautorole @Cargo` | Define o cargo atribuído automaticamente a novos membros |
-| `\|setpromoterole @Cargo` | Define o cargo usado por `\|promote` / `\|demote` |
-| `\|showconfig` | Exibe a configuração atual do bot neste servidor |
-| `\|status` | Painel de latência e permissões |
-| `\|reload <módulo>` | Recarrega um módulo sem reiniciar o bot |
-| `\|reloadall` | Recarrega todos os módulos |
+| `|setautorole @Cargo` | Define o cargo dado automaticamente a novos membros |
+| `|setwelcome <mensagem|off>` | Define ou desativa a mensagem de boas-vindas em DM |
+| `|setpromoterole @Cargo` | Define o cargo usado pelos comandos de promoção |
+| `|showconfig` | Exibe a configuração atual do bot no servidor |
+| `|status` | Mostra latência, módulos e permissões do bot |
+| `|reload <módulo>` | Recarrega um módulo (cog) sem reiniciar o bot |
+| `|reloadall` | Recarrega todos os módulos carregados |
 
 ### 📅 Agendador de Mensagens *(apenas dono/admin)*
 
@@ -55,16 +59,16 @@ Crie mensagens automáticas por servidor, diárias ou em uma data específica.
 
 | Comando | Descrição |
 |---------|-----------|
-| `\|setqueue #canal HH:MM sim` | Cria mensagem diária no canal |
-| `\|setqueue #canal HH:MM não dd/mm/yyyy` | Cria mensagem única em uma data |
-| `\|listqueue` | Lista todos os agendamentos do servidor |
-| `\|delqueue <id>` | Remove um agendamento pelo ID |
+| `|setqueue #canal HH:MM sim` | Cria uma mensagem diária no canal |
+| `|setqueue #canal HH:MM não dd/mm/yyyy` | Cria uma mensagem única em uma data específica |
+| `|listqueue` | Lista todos os agendamentos do servidor |
+| `|delqueue <id>` | Remove um agendamento pelo ID |
 
 ### 👋 Automações de Eventos
 
 - **Boas-vindas** — DM automática ao novo membro ao entrar no servidor
-- **Autorole** — cargo atribuído automaticamente (configurável via `\|setautorole`)
-- **Verificação de permissões** — ao entrar em um servidor, o bot notifica o dono caso faltem permissões necessárias
+- **Autorole** — cargo atribuído automaticamente (configurável via `|setautorole`)
+- **Verificação de permissões** — ao entrar em um servidor, o bot avisa o dono caso falte alguma permissão necessária
 
 ---
 
@@ -79,10 +83,10 @@ Crie mensagens automáticas por servidor, diárias ou em uma data específica.
 │   ├── ai.py          # Comando |sec (OpenAI GPT-5-mini)
 │   ├── events.py      # Listeners: on_ready, on_guild_join, on_member_join, on_message
 │   ├── general.py     # Comandos gerais (ping, serverinfo, userinfo, avatar, help)
-│   ├── moderation.py  # Moderação (ban, kick, mute, warn…)
+│   ├── moderation.py  # Moderação (ban, kick, mute, warn, purge, unban, softban)
 │   ├── queue.py       # Gerenciamento de agendamentos (setqueue, listqueue, delqueue)
 │   ├── scheduler.py   # Loop que dispara as mensagens agendadas
-│   └── setup.py       # Configuração do servidor (setautorole, setpromoterole, status…)
+│   └── setup.py       # Configuração do servidor (setautorole, setwelcome, setpromoterole, status, reload)
 └── utils/
     ├── database.py    # SQLite — histórico de mensagens, config por guild, agendamentos e avisos
     └── helpers.py     # Funções utilitárias (is_owner_or_admin, find_channel, get_role)
@@ -137,11 +141,8 @@ Todas as configurações ficam em `config.py`:
 
 | Variável | Descrição |
 |----------|-----------|
-| `PREFIX` | Prefixo dos comandos (padrão: `\|`) |
-| `MEMBER_ROLE` | Nome do role atribuído aos membros |
-| `ARC_ROLE` | Role de administração |
+| `PREFIX` | Prefixo dos comandos (padrão: `|`) |
 | `SYSTEM_PROMPT` | Personalidade e instruções da IA |
-| `SCHEDULES` | Lista de mensagens agendadas com horário e canal |
 
 ---
 

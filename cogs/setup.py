@@ -1,3 +1,5 @@
+"""Cog de configuração do servidor: autorole, mensagem de boas-vindas e roles de promoção."""
+
 import discord
 from discord.ext import commands
 
@@ -6,7 +8,7 @@ from utils.helpers import is_owner_or_admin
 
 
 class Setup(commands.Cog):
-    """Comandos de configuração do servidor (apenas dono/admin)."""
+    """Comandos de configuração do servidor acessíveis a donos/admins."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -14,22 +16,14 @@ class Setup(commands.Cog):
     @commands.command(name='setautorole')
     @is_owner_or_admin()
     async def set_autorole(self, ctx: commands.Context, role: discord.Role):
-        """Define o cargo atribuído automaticamente quando um membro entra.
-
-        Uso: |setautorole @Cargo
-        """
+        """Define o cargo atribuído automaticamente a novos membros."""
         await set_guild_config(ctx.guild.id, autorole_id=role.id)
         await ctx.send(f'Autorole definido para **{role.name}**. Novos membros receberão esse cargo ao entrar.')
 
     @commands.command(name='setwelcome')
     @is_owner_or_admin()
     async def set_welcome(self, ctx: commands.Context, *, message: str = None):
-        """Define a mensagem enviada por DM ao novo membro quando ele entra no servidor.
-
-        Uso: |setwelcome Bem-vindo, {member}! Você entrou em {server}.
-        Use {member} para o nome do membro e {server} para o nome do servidor.
-        Use |setwelcome off para desativar.
-        """
+        """Configura a mensagem de boas-vindas enviada por DM a novos membros."""
         if message and message.lower() == 'off':
             await set_guild_config(ctx.guild.id, welcome_message=None)
             await ctx.send('Mensagem de boas-vindas **desativada**. Novos membros não receberão DM ao entrar.')
@@ -53,17 +47,14 @@ class Setup(commands.Cog):
     @commands.command(name='setpromoterole')
     @is_owner_or_admin()
     async def set_promote_role(self, ctx: commands.Context, role: discord.Role):
-        """Define o cargo usado pelo comando |promote.
-
-        Uso: |setpromoterole @Cargo
-        """
+        """Define o cargo usado pelo comando |promote."""
         await set_guild_config(ctx.guild.id, promote_role_id=role.id)
         await ctx.send(f'Promote role definido para **{role.name}**.')
 
     @commands.command(name='showconfig')
     @is_owner_or_admin()
     async def show_config(self, ctx: commands.Context):
-        """Mostra a configuração modular atual do bot neste servidor."""
+        """Mostra a configuração atual do bot no servidor."""
         from config import PREFIX
         from utils.database import get_all_pending_schedules
 
@@ -77,24 +68,25 @@ class Setup(commands.Cog):
             color=discord.Color.blurple(),
         )
 
-        # Geral
+        # Exibe prefixo e módulos carregados
         embed.add_field(name='Prefixo', value=f'`{PREFIX}`', inline=True)
         loaded_cogs = ', '.join(f'`{name}`' for name in self.bot.cogs) or '*(nenhum)*'
         embed.add_field(name='Módulos carregados', value=loaded_cogs, inline=False)
 
-        # Roles configurados via banco
+        # Autorole configurado
         embed.add_field(
             name='Autorole (entrada)',
             value=autorole.mention if autorole else '*(não definido)*',
             inline=True,
         )
+        # Promote role configurado
         embed.add_field(
             name='Promote role',
             value=promote_role.mention if promote_role else '*(não definido)*',
             inline=True,
         )
 
-        # Mensagem de boas-vindas
+        # Mensagem de boas-vindas atual
         welcome_msg = config.get('welcome_message')
         embed.add_field(
             name='Mensagem de boas-vindas (DM)',
@@ -102,7 +94,7 @@ class Setup(commands.Cog):
             inline=False,
         )
 
-        # Agendamentos configurados via |setqueue
+        # Agendamentos ativos no servidor
         all_schedules = await get_all_pending_schedules()
         guild_channel_ids = {ch.id for ch in ctx.guild.text_channels}
         active = [s for s in all_schedules if s['channel_id'] in guild_channel_ids]
@@ -116,18 +108,15 @@ class Setup(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    # ── status ────────────────────────────────────────────────────────────────
-
     @commands.command(name='status')
     @is_owner_or_admin()
     async def status(self, ctx: commands.Context):
-        """Painel de status: latência, permissões e saúde geral do bot."""
+        """Mostra o status do bot e suas permissões no servidor."""
         from cogs.events import REQUIRED_PERMISSIONS
 
         bot_member = ctx.guild.me
         latency = round(self.bot.latency * 1000)
 
-        # Permissões
         ok = []
         missing = []
         for perm in REQUIRED_PERMISSIONS:
@@ -156,15 +145,10 @@ class Setup(commands.Cog):
             )
         await ctx.send(embed=embed)
 
-    # ── reload ─────────────────────────────────────────────────────────
-
     @commands.command(name='reload')
     @is_owner_or_admin()
     async def reload_cog(self, ctx: commands.Context, cog: str):
-        """Recarrega um módulo (cog) sem reiniciar o bot.
-
-        Uso: |reload moderation
-        """
+        """Recarrega um cog sem reiniciar o bot."""
         ext = f'cogs.{cog}' if not cog.startswith('cogs.') else cog
         try:
             await self.bot.reload_extension(ext)
@@ -179,10 +163,7 @@ class Setup(commands.Cog):
     @commands.command(name='reloadall')
     @is_owner_or_admin()
     async def reload_all(self, ctx: commands.Context):
-        """Recarrega todos os módulos carregados.
-
-        Uso: |reloadall
-        """
+        """Recarrega todos os cogs carregados."""
         results = []
         for ext in list(self.bot.extensions):
             try:

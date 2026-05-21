@@ -1,3 +1,5 @@
+"""Cog responsável por consultas de IA usando a API OpenAI."""
+
 import os
 
 from discord.ext import commands
@@ -6,8 +8,10 @@ from openai import AsyncOpenAI
 from config import SYSTEM_PROMPT
 from utils.database import get_recent_messages
 
+# Limite de caracteres suportado pelo Discord por mensagem.
 DISCORD_MAX_LENGTH = 2000
-RATE_LIMIT_SECONDS = 30  # cooldown por usuário
+# Tempo de cooldown entre usos do comando |sec por usuário.
+RATE_LIMIT_SECONDS = 30
 
 
 class AI(commands.Cog):
@@ -84,6 +88,7 @@ class AI(commands.Cog):
 
     @sec.error
     async def sec_error(self, ctx: commands.Context, error: commands.CommandError):
+        """Tratamento local de erros do comando |sec."""
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send(
                 f'Calma lá! Aguarde **{error.retry_after:.0f}s** antes de usar `|sec` novamente.',

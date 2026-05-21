@@ -1,6 +1,7 @@
 .env
 .env.local
 .env.*
+!.env.example
 .DS_Store
 bot_output.log
 bot_data.db

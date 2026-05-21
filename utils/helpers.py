@@ -1,11 +1,14 @@
-"""Funções auxiliares reutilizáveis."""
+"""Funções utilitárias de uso geral no bot."""
 
 import discord
 from discord.ext import commands
 
 
 def is_owner_or_admin():
-    """Check: apenas o dono do servidor ou administradores podem usar o comando."""
+    """Retorna um check para comandos de administrador.
+
+    O comando só passa se o autor for o dono do servidor ou tiver permissão de administrador.
+    """
     async def predicate(ctx: commands.Context) -> bool:
         return (
             ctx.author == ctx.guild.owner
@@ -15,7 +18,11 @@ def is_owner_or_admin():
 
 
 def find_channel(bot, channel_name: str | None = None, channel_id: int | None = None):
-    """Busca um canal de texto pelo nome ou ID em todos os servidores do bot."""
+    """Busca por um canal de texto usando nome ou ID.
+
+    Se o ID for fornecido, retorna diretamente o canal do cache do bot.
+    Caso contrário, procura em todos os guilds pelo nome do canal.
+    """
     if channel_id:
         return bot.get_channel(channel_id)
     if channel_name:
@@ -27,5 +34,8 @@ def find_channel(bot, channel_name: str | None = None, channel_id: int | None = 
 
 
 def get_role(guild: discord.Guild, role_name: str):
-    """Retorna um role pelo nome no guild, ou None se não existir."""
+    """Retorna um cargo pelo nome dentro de um guild.
+
+    Retorna None se o cargo não existir.
+    """
     return discord.utils.get(guild.roles, name=role_name)

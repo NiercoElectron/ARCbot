@@ -1,3 +1,5 @@
+"""Cog que permite criar e gerenciar agendamentos de mensagens."""
+
 import asyncio
 import datetime
 
@@ -13,7 +15,7 @@ from utils.helpers import is_owner_or_admin
 
 
 class Queue(commands.Cog):
-    """Gerenciamento de mensagens agendadas por servidor."""
+    """Gerencia agendamentos de mensagens para canais do servidor."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -28,13 +30,7 @@ class Queue(commands.Cog):
         daily: str,
         date: str = None,
     ):
-        """Cria um agendamento de mensagem.
-
-        Uso:
-          |setqueue #canal HH:MM sim
-          |setqueue #canal HH:MM não dd/mm/yyyy
-        """
-        # Valida horário
+        """Cria um novo agendamento de mensagem para um canal."""
         try:
             datetime.datetime.strptime(time, '%H:%M')
         except ValueError:
@@ -59,7 +55,6 @@ class Queue(commands.Cog):
                 await ctx.send('Data inválida. Use o formato `dd/mm/yyyy` (ex: `25/12/2026`).')
                 return
 
-        # Pede a mensagem via wait_for
         prompt = await ctx.send('Qual a mensagem a ser enviada? *(responda em até 60 segundos)*')
         try:
             reply = await self.bot.wait_for(
@@ -89,7 +84,7 @@ class Queue(commands.Cog):
     @commands.command(name='listqueue')
     @is_owner_or_admin()
     async def list_queue(self, ctx: commands.Context):
-        """Lista todos os agendamentos configurados no servidor."""
+        """Exibe todos os agendamentos do servidor."""
         schedules = await get_guild_schedules(ctx.guild.id)
 
         if not schedules:
@@ -102,7 +97,7 @@ class Queue(commands.Cog):
         )
         for s in schedules:
             channel = ctx.guild.get_channel(s['channel_id'])
-            channel_str = channel.mention if channel else f'*(canal removido)*'
+            channel_str = channel.mention if channel else '*(canal removido)*'
 
             if s['daily']:
                 recurrence = '🔁 Diário'
@@ -122,10 +117,7 @@ class Queue(commands.Cog):
     @commands.command(name='delqueue')
     @is_owner_or_admin()
     async def del_queue(self, ctx: commands.Context, schedule_id: int):
-        """Remove um agendamento pelo ID.
-
-        Uso: |delqueue <id>
-        """
+        """Remove um agendamento existente pelo seu ID."""
         removed = await delete_guild_schedule(schedule_id, ctx.guild.id)
         if removed:
             await ctx.send(f'Agendamento **`#{schedule_id}`** removido.')
@@ -136,6 +128,7 @@ class Queue(commands.Cog):
     @list_queue.error
     @del_queue.error
     async def queue_error(self, ctx: commands.Context, error: commands.CommandError):
+        """Tratamento de erros comuns dos comandos de agendamento."""
         if isinstance(error, commands.CheckFailure):
             await ctx.send('Apenas o dono do servidor ou administradores podem usar esse comando.')
         elif isinstance(error, commands.MissingRequiredArgument):
@@ -151,4 +144,5 @@ class Queue(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
+    """Adiciona o cog Queue ao bot."""
     await bot.add_cog(Queue(bot))

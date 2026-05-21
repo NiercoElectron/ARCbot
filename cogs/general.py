@@ -1,3 +1,5 @@
+"""Comandos gerais do bot como ping, informações de servidor e ajuda."""
+
 import discord
 from discord.ext import commands
 
@@ -5,23 +7,19 @@ from config import PREFIX
 
 
 class General(commands.Cog):
-    """Comandos gerais do bot."""
+    """Cog que agrupa comandos informativos e utilitários públicos."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    # ── ping ──────────────────────────────────────────────────────────────
-
     @commands.command()
     async def ping(self, ctx: commands.Context):
-        """Verifica a latência do bot."""
+        """Verifica a latência do bot e responde com um Pong."""
         await ctx.send(f'Pong! `{round(self.bot.latency * 1000)}ms`')
-
-    # ── serverinfo ────────────────────────────────────────────────────────
 
     @commands.command()
     async def serverinfo(self, ctx: commands.Context):
-        """Exibe informações sobre o servidor."""
+        """Exibe informações sobre o servidor atual em um embed."""
         guild = ctx.guild
         embed = discord.Embed(
             title=guild.name,
@@ -46,11 +44,9 @@ class General(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    # ── userinfo ───────────────────────────────────────────────────────────
-
     @commands.command()
     async def userinfo(self, ctx: commands.Context, member: discord.Member = None):
-        """Exibe informações sobre um membro. Se não informado, mostra o seu próprio perfil."""
+        """Mostra dados do usuário ou do autor do comando."""
         target = member or ctx.author
         roles = [r.mention for r in reversed(target.roles) if r.name != '@everyone']
 
@@ -79,11 +75,9 @@ class General(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    # ── avatar ─────────────────────────────────────────────────────────────
-
     @commands.command()
     async def avatar(self, ctx: commands.Context, member: discord.Member = None):
-        """Mostra o avatar de um membro em tamanho grande."""
+        """Envia o avatar do membro em tamanho grande."""
         target = member or ctx.author
         embed = discord.Embed(
             title=f'Avatar de {target.display_name}',
@@ -92,11 +86,9 @@ class General(commands.Cog):
         embed.set_image(url=target.display_avatar.with_size(1024).url)
         await ctx.send(embed=embed)
 
-    # ── help ───────────────────────────────────────────────────────────────
-
     @commands.command(name='help')
     async def help_command(self, ctx: commands.Context):
-        """Lista todos os comandos disponíveis para você."""
+        """Mostra os comandos disponíveis com base nas permissões do usuário."""
         is_privileged = (
             ctx.author == ctx.guild.owner
             or ctx.author.guild_permissions.administrator
@@ -113,7 +105,6 @@ class General(commands.Cog):
             for cmd in cog.get_commands():
                 if cmd.hidden:
                     continue
-                # Verifica se o comando tem check de admin
                 has_admin_check = bool(cmd.checks)
                 if has_admin_check and not is_privileged:
                     continue
@@ -137,4 +128,5 @@ class General(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
+    """Adiciona o cog General ao bot."""
     await bot.add_cog(General(bot))

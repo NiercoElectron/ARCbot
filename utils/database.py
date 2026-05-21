@@ -1,9 +1,16 @@
-"""Módulo de banco de dados SQLite — armazena histórico de mensagens por canal."""
+"""Módulo de acesso ao banco de dados SQLite.
+
+Este módulo gerencia o armazenamento de mensagens, configurações do servidor,
+avisos e agendamentos de mensagem.
+"""
 
 import aiosqlite
 
+# Caminho do arquivo SQLite usado pelo bot.
 DB_PATH = 'bot_data.db'
+# Quantidade máxima de mensagens armazenadas por canal para contexto da IA.
 MAX_MESSAGES_PER_CHANNEL = 10
+# Tempo de vida das mensagens em horas antes de serem removidas.
 MESSAGE_TTL_HOURS = 24  # mensagens mais antigas que isso são removidas automaticamente
 
 

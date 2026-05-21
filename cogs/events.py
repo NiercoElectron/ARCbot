@@ -1,3 +1,5 @@
+"""Cog de listeners de eventos do Discord e inicialização do banco de dados."""
+
 import discord
 from discord.ext import commands
 
@@ -16,7 +18,7 @@ REQUIRED_PERMISSIONS = [
 
 
 class Events(commands.Cog):
-    """Listeners de eventos do Discord."""
+    """Cog que gerencia eventos como on_ready, on_member_join e on_message."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -24,6 +26,7 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        """Inicializa o banco de dados e indica que o bot está pronto."""
         if not self._db_ready:
             await init_db()
             self._db_ready = True
@@ -31,7 +34,7 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
-        """Verifica permissões ao entrar em um servidor e avisa o dono caso falte alguma."""
+        """Verifica permissões ao entrar em um servidor e avisa o dono se faltar alguma."""
         bot_member = guild.me
         missing = [
             perm for perm in REQUIRED_PERMISSIONS
@@ -49,7 +52,6 @@ class Events(commands.Cog):
         try:
             await guild.owner.send(msg)
         except discord.Forbidden:
-            # tenta enviar no primeiro canal que conseguir escrever
             for channel in guild.text_channels:
                 if channel.permissions_for(bot_member).send_messages:
                     await channel.send(msg)
@@ -57,6 +59,7 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
+        """Aplica autorole e envia mensagem de boas-vindas ao novo membro."""
         config = await get_guild_config(member.guild.id)
 
         welcome_msg = config.get('welcome_message')
@@ -77,10 +80,10 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        """Guarda mensagens no banco de dados para fornecer contexto à IA."""
         if message.author == self.bot.user:
             return
 
-        # Salva a mensagem no banco para contexto da IA
         if message.content:
             await save_message(
                 channel_id=message.channel.id,
@@ -91,16 +94,16 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
-        # Ignora erros que já foram tratados por handlers locais
+        """Trata erros de comando não capturados por handlers locais."""
         if hasattr(ctx.command, 'on_error'):
             return
         if ctx.cog and commands.Cog._get_overridden_hook(ctx.cog.cog_command_error):
             return
 
         if isinstance(error, commands.CommandNotFound):
-            return  # silencia comandos inexistentes
+            return
         if isinstance(error, commands.CommandOnCooldown):
-            return  # tratado localmente em ai.py
+            return
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(f'Argumento faltando: `{error.param.name}`. Use `|help` para ver o uso correto.')
         elif isinstance(error, commands.BadArgument):
@@ -114,4 +117,5 @@ class Events(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
+    """Adiciona o cog Events ao bot."""
     await bot.add_cog(Events(bot))

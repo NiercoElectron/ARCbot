@@ -1,3 +1,5 @@
+"""Comandos de moderação, avisos e controle de membros."""
+
 import datetime
 import re
 

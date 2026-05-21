@@ -1,6 +1,6 @@
-"""Configurações e constantes globais do bot."""
+"""Configurações globais e constantes reutilizadas pelo bot."""
 
-# Prefixo de comandos
+# Prefixo de comando usado pelo bot, por exemplo: |ping
 PREFIX = '|'
 
 # System prompt para a IA (comando |sec)

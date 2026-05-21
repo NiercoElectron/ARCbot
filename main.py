@@ -1,4 +1,8 @@
-"""Bot Discord — ponto de entrada."""
+"""Ponto de entrada do bot Discord.
+
+Este módulo configura o cliente do Discord, carrega as extensões (cogs) e inicia
+o bot usando o token definido em variáveis de ambiente.
+"""
 
 import asyncio
 import logging
@@ -10,19 +14,21 @@ from dotenv import load_dotenv
 
 from config import PREFIX
 
+# Carrega variáveis de ambiente a partir de .env
 load_dotenv()
 
-# Logging
+# Configura logging para salvar as mensagens de log em disco.
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 
-# Intents
+# Define os intents necessários para o bot operar corretamente.
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
+# Cria a instância do bot com prefixo de comando e sem help automático.
 bot = commands.Bot(command_prefix=PREFIX, intents=intents, help_command=None)
 
-# Configura logging manualmente (bot.start() não aceita log_handler)
+# Inicializa o logger do discord.py com o handler configurado.
 discord.utils.setup_logging(handler=handler, level=logging.DEBUG)
 
 # Lista de cogs para carregar automaticamente
@@ -38,6 +44,7 @@ EXTENSIONS = [
 
 
 async def main():
+    """Carrega as extensões e inicia o bot."""
     async with bot:
         for ext in EXTENSIONS:
             await bot.load_extension(ext)
