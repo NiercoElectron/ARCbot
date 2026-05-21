@@ -72,7 +72,7 @@ class AI(commands.Cog):
                         {"role": "user", "content": question},
                     ],
                     temperature=1.0,
-                    max_output_tokens=10000,
+                    max_output_tokens=500,
                 )
 
             text = (resp.output_text or '').strip()
