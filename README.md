@@ -12,46 +12,46 @@ Assistente com personalidade própria alimentado pelo modelo **GPT-5-mini**. Usa
 
 | Comando | Descrição |
 |---------|-----------|
-| \|sec <pergunta> | Consulta a IA com contexto das últimas mensagens do canal |
+| &#124;sec <pergunta> | Consulta a IA com contexto das últimas mensagens do canal |
 
 ### 🎉 Comandos Gerais
 
 | Comando | Descrição |
 |---------|-----------|
-| \|ping | Verifica a latência do bot |
-| \|serverinfo | Mostra informações do servidor em embed |
-| \|userinfo [@membro] | Exibe dados de um membro (padrão: autor do comando) |
-| \|avatar [@membro] | Mostra o avatar em tamanho grande |
-| \|help | Mostra os comandos disponíveis para você de acordo com suas permissões |
+| &#124;ping | Verifica a latência do bot |
+| &#124;serverinfo | Mostra informações do servidor em embed |
+| &#124;userinfo [@membro] | Exibe dados de um membro (padrão: autor do comando) |
+| &#124;avatar [@membro] | Mostra o avatar em tamanho grande |
+| &#124;help | Mostra os comandos disponíveis para você de acordo com suas permissões |
 
 ### 🛡️ Moderação *(apenas dono/admin)*
 
 | Comando | Descrição |
 |---------|-----------|
-| \|promote [@membro] | Atribui o promote role ao membro |
-| \|demote [@membro] | Remove o promote role do membro |
-| \|ban @membro [motivo] | Bane o membro do servidor |
-| \|kick @membro [motivo] | Expulsa o membro do servidor |
-| \|mute @membro <duração> [motivo] | Timeout por 10s, 5m, 2h ou 1d (máx 28d) |
-| \|liberar @membro | Remove o timeout antes do prazo |
-| \|warn @membro [motivo] | Registra um aviso para o membro |
-| \|warnings @membro | Lista os avisos do membro |
-| \|clearwarns @membro | Remove todos os avisos do membro |
-| \|purge <quantidade> [@membro] | Deleta mensagens no canal, opcionalmente filtrando por membro |
-| \|unban <user_id> [motivo] | Remove o ban de um usuário pelo ID |
-| \|softban @membro [motivo] | Bane e desbane o membro para apagar mensagens recentes |
+| &#124;promote [@membro] | Atribui o promote role ao membro |
+| &#124;demote [@membro] | Remove o promote role do membro |
+| &#124;ban @membro [motivo] | Bane o membro do servidor |
+| &#124;kick @membro [motivo] | Expulsa o membro do servidor |
+| &#124;mute @membro <duração> [motivo] | Timeout por 10s, 5m, 2h ou 1d (máx 28d) |
+| &#124;liberar @membro | Remove o timeout antes do prazo |
+| &#124;warn @membro [motivo] | Registra um aviso para o membro |
+| &#124;warnings @membro | Lista os avisos do membro |
+| &#124;clearwarns @membro | Remove todos os avisos do membro |
+| &#124;purge <quantidade> [@membro] | Deleta mensagens no canal, opcionalmente filtrando por membro |
+| &#124;unban <user_id> [motivo] | Remove o ban de um usuário pelo ID |
+| &#124;softban @membro [motivo] | Bane e desbane o membro para apagar mensagens recentes |
 
 ### ⚙️ Configuração *(apenas dono/admin)*
 
 | Comando | Descrição |
 |---------|-----------|
-| \|setautorole @Cargo | Define o cargo dado automaticamente a novos membros |
-| \|setwelcome <mensagem|off> | Define ou desativa a mensagem de boas-vindas em DM |
-| \|setpromoterole @Cargo | Define o cargo usado pelos comandos de promoção |
-| \|showconfig | Exibe a configuração atual do bot no servidor |
-| \|status | Mostra latência, módulos e permissões do bot |
-| \|reload <módulo> | Recarrega um módulo (cog) sem reiniciar o bot |
-| \|reloadall | Recarrega todos os módulos carregados |
+| &#124;setautorole @Cargo | Define o cargo dado automaticamente a novos membros |
+| &#124;setwelcome <mensagem&#124;off> | Define ou desativa a mensagem de boas-vindas em DM |
+| &#124;setpromoterole @Cargo | Define o cargo usado pelos comandos de promoção |
+| &#124;showconfig | Exibe a configuração atual do bot no servidor |
+| &#124;status | Mostra latência, módulos e permissões do bot |
+| &#124;reload <módulo> | Recarrega um módulo (cog) sem reiniciar o bot |
+| &#124;reloadall | Recarrega todos os módulos carregados |
 
 ### 📅 Agendador de Mensagens *(apenas dono/admin)*
 
@@ -59,10 +59,10 @@ Crie mensagens automáticas por servidor, diárias ou únicas em data futura.
 
 | Comando | Descrição |
 |---------|-----------|
-| \|setqueue #canal HH:MM sim | Cria um agendamento diário no canal |
-| \|setqueue #canal HH:MM não dd/mm/yyyy | Cria um agendamento único para uma data específica |
-| \|listqueue | Lista todos os agendamentos do servidor |
-| \|delqueue <id> | Remove um agendamento pelo ID |
+| &#124;setqueue #canal HH:MM sim | Cria um agendamento diário no canal |
+| &#124;setqueue #canal HH:MM não dd/mm/yyyy | Cria um agendamento único para uma data específica |
+| &#124;listqueue | Lista todos os agendamentos do servidor |
+| &#124;delqueue <id> | Remove um agendamento pelo ID |
 
 ### 👋 Automações de Eventos
 
