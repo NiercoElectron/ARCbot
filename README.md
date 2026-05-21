@@ -106,7 +106,7 @@ Crie mensagens automáticas por servidor, diárias ou únicas em data futura.
 ```bash
 # 1. Clone o repositório
 git clone <url-do-repo>
-cd BotPublic
+cd ARCbot
 
 # 2. Crie e ative o ambiente virtual
 python -m venv .venv
