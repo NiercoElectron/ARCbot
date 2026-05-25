@@ -1,9 +1,13 @@
 """Cog responsável por consultas de IA usando a API OpenAI."""
 
+import logging
 import os
+import uuid
 
 from discord.ext import commands
 from openai import AsyncOpenAI
+
+log = logging.getLogger(__name__)
 
 from config import SYSTEM_PROMPT
 from utils.database import get_recent_messages
@@ -83,8 +87,10 @@ class AI(commands.Cog):
             for chunk in self._split_message(text):
                 await ctx.send(chunk)
 
-        except Exception as e:
-            await ctx.send(f'Erro ao consultar a IA: {e}')
+        except Exception:
+            err_id = uuid.uuid4().hex[:8]
+            log.exception('Erro OpenAI [%s] canal=%s', err_id, ctx.channel.id)
+            await ctx.send(f'Erro ao consultar a IA. Tenta de novo em instantes. Código: `{err_id}`')
 
     @sec.error
     async def sec_error(self, ctx: commands.Context, error: commands.CommandError):

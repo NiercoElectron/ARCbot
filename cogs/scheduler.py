@@ -1,10 +1,13 @@
 import asyncio
 import datetime
+import logging
 
 import discord
 from discord.ext import commands, tasks
 
 from utils.database import get_all_pending_schedules, mark_schedule_fired
+
+log = logging.getLogger(__name__)
 
 
 class Scheduler(commands.Cog):
@@ -43,9 +46,9 @@ class Scheduler(commands.Cog):
         try:
             # Busca todos os agendamentos pendentes no banco de dados.
             db_schedules = await get_all_pending_schedules()
-        except Exception as e:
+        except Exception:
             # Caso haja erro ao carregar do banco, registra e usa lista vazia.
-            print(f"Erro ao carregar agendamentos do banco: {e}")
+            log.exception('Erro ao carregar agendamentos do banco')
             db_schedules = []
 
         for s in db_schedules:
@@ -65,9 +68,9 @@ class Scheduler(commands.Cog):
             try:
                 # Envia a mensagem agendada para o canal.
                 await channel.send(s['message'])
-            except Exception as e:
+            except Exception:
                 # Se ocorrer erro ao enviar, registra e segue para o próximo agendamento.
-                print(f"Erro ao enviar agendamento #{s['id']}: {e}")
+                log.exception('Erro ao enviar agendamento #%s', s['id'])
                 continue
 
             # Marca como disparado apenas agendamentos que não se repetem diariamente.
